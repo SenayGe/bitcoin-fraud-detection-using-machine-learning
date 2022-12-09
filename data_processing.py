@@ -25,10 +25,10 @@ def load_elliptic_dataset (drop_unlabeled=True):
     df_classes.replace({'class': {'1': 1, '2': 0, 'unknown': 2}}, inplace=True)
 
     # Renaming feature names
-    '''
+    """
     features 0-93 represent local information while the remaining 
     72 features contain aggregated transaction infromation
-    '''
+    """
     df_features.columns = ['id', 'time_step'] + \
         [f'trans_feat_{i}' for i in range(93)] + [f'agg_feat_{i}' for i in range(72)]
     
@@ -42,6 +42,21 @@ def load_elliptic_dataset (drop_unlabeled=True):
 
     return X, y
 
+def split_train_test (X, y):
+    """ 
+    Splitting the dataset to training and test data according to 70:30 ration.
+    Temporally, this means the first 34 steps are part of the training data and the 
+    rest part of the test data.
+    """
+    splitting_timestep = 34
+    last_timestep = 49
+
+    train_timesteps = list(range(splitting_timestep + 1))
+    test_timesteps = list(range(splitting_timestep + 1, last_timestep + 1))
+
+    
+
+    
 
 
 
