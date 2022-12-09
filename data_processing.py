@@ -54,7 +54,17 @@ def split_train_test (X, y):
     train_timesteps = list(range(splitting_timestep + 1))
     test_timesteps = list(range(splitting_timestep + 1, last_timestep + 1))
 
-    
+    train_idx = X[X['time_step'].isin(train_timesteps)].index
+    test_idx = X[X['time_step'].isin(test_timesteps)].index
+
+    # Splitting training and testing data
+    X_train = X.loc(train_idx) #dataframe
+    X_test = X.loc(test_idx) #dataframe
+
+    y_train = y.loc(train_idx) #dataframe
+    y_test = y.loc(test_idx) #dataframe
+
+    return X_train, X_test, y_train, y_test 
 
     
 
