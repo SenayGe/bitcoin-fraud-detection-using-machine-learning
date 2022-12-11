@@ -6,7 +6,7 @@ from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_sc
 import numpy as np
 
 
-def supervised_model (model, X_train, y_train):
+def supervised_model (X_train, y_train, model):
     """ Use models from the sklearn library """
 
     if model == 'RandomForest':
@@ -15,10 +15,11 @@ def supervised_model (model, X_train, y_train):
         model_supervised = XGBClassifier()
     elif model == 'LogisticRegression':
         model_supervised = LogisticRegression()
+
     model_supervised.fit(X_train, y_train)
     return model_supervised
 
-def unsupervised_model (model, X_train, y_train, semi):
+def unsupervised_model (X_train, y_train, model):
     """ Use models from the pyod library """
     model.fit(X_train, y_train)
     return model
