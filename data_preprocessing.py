@@ -7,15 +7,17 @@ data_edges = os.path.join (os.getcwd(), 'dataset/elliptic_txs_edgelist.csv')
 data_classes = os.path.join (os.getcwd(), 'dataset/elliptic_txs_classes.csv')
 
 def merge_dataframes (df_features, df_classes, drop_unlabeled=True):
-    df_dataset = pd.merge_dataset (df_features, df_classes, left_on='id', right_on='txtId', how='id')
-    df_dataset.drop(columns=['txtId'], inplace=True)
+    df_merged = pd.merge (df_features, df_classes, left_on='id', right_on='txId', how='left')
+    
     if drop_unlabeled:
-        df_combined = df_combined[df_combined['class'] != 2].reset_index(drop=True)
-
-    return df_dataset
+        # print (df_merged.iloc([df_merged['class'] != 2]))
+        df_merged = df_merged[df_merged['class'] != 2]
+        df_merged.reset_index(drop=True)
+    df_merged.drop(columns=['txId'], inplace=True)
+    return df_merged
     
 def load_elliptic_dataset (drop_unlabeled=True):
-    df_features = pd.read_csv (data_features)
+    df_features = pd.read_csv (data_features, header=None)
     df_edges = pd.read_csv (data_edges)
     df_classes = pd.read_csv (data_classes)
     
@@ -33,7 +35,7 @@ def load_elliptic_dataset (drop_unlabeled=True):
         [f'trans_feat_{i}' for i in range(93)] + [f'agg_feat_{i}' for i in range(72)]
     
     # Combining the dataframes
-    df_dataset = merge_dataframes (df_classes, df_features, drop_unlabeled)
+    df_dataset = merge_dataframes (df_features, df_classes, drop_unlabeled)
 
 
     # Assigning X and y 
@@ -58,11 +60,11 @@ def split_train_test (X, y):
     test_idx = X[X['time_step'].isin(test_timesteps)].index
 
     # Splitting training and testing data
-    X_train = X.loc(train_idx) #dataframe
-    X_test = X.loc(test_idx) #dataframe
+    X_train = X.loc[train_idx] #dataframe
+    X_test = X.loc[test_idx] #dataframe
 
-    y_train = y.loc(train_idx) #dataframe
-    y_test = y.loc(test_idx) #dataframe
+    y_train = y.loc[train_idx] #dataframe
+    y_test = y.loc[test_idx] #dataframe
 
     return X_train, X_test, y_train, y_test 
 
