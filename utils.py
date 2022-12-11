@@ -47,6 +47,8 @@ def average_performance_per_timestep(X_test, y_test, y_preds, metric= 'f1'):
 
     return avg_f1 
 
+    
+
 def plot_performance_per_timestep(model_metric_dict, last_train_time_step=34,last_time_step=49, model_std_dict=None, fontsize=23, labelsize=18, figsize=(20, 10),
                                   linestyle=['solid', "dotted", 'dashed'], linecolor=["green", "orange", "red"],
                                   barcolor='lightgrey', baralpha=0.3, linewidth=1.5, savefig_path=None):
