@@ -1,6 +1,7 @@
 import os
 import sys
 import pandas as pd
+import numpy as np
 
 data_features = os.path.join (os.getcwd(), 'dataset/elliptic_txs_features.csv')
 data_edges = os.path.join (os.getcwd(), 'dataset/elliptic_txs_edgelist.csv')
@@ -18,7 +19,6 @@ def merge_dataframes (df_features, df_classes, drop_unlabeled=True):
     
 def load_elliptic_dataset (drop_unlabeled=True):
     df_features = pd.read_csv (data_features, header=None)
-    df_edges = pd.read_csv (data_edges)
     df_classes = pd.read_csv (data_classes)
     
     # CLEANING DATASET
@@ -70,6 +70,19 @@ def split_train_test (X, y):
 
     
 
+def adj_mat_per_ts (X_train, ts_start, ts_end):
+    """Retrun a list containitng the adjacency matrix for every timestep"""
 
+    df_edges = pd.read_csv (data_edges)
+    df_edges_labelled = df_edges[df_edges['TxId'].isin(X_train['id'])]
+    adj_matrices = []
+    for timestep in range(ts_start , ts_end + 1):
+        num_tx = X_train[X_train['time_step'] == timestep].shape[0]
+        adj_mat_ts = pd.DataFrame(np.zeros((num_tx, num_tx)))
 
+        for i in range(num_tx):
+            adj_mat_ts.loc[adj_mat_ts.index[i], df_edges_labelled.iloc[i]['txId2']] = 1
 
+        adj_matrices.append(adj_mat_ts)
+
+    return adj_matrices
