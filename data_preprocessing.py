@@ -20,6 +20,7 @@ def merge_dataframes (df_features, df_classes, drop_unlabeled=True):
 def load_elliptic_dataset (drop_unlabeled=True):
     df_features = pd.read_csv (data_features, header=None)
     df_classes = pd.read_csv (data_classes)
+    df_edges = pd.read_csv (data_edges)
     
     # CLEANING DATASET
 
@@ -39,10 +40,16 @@ def load_elliptic_dataset (drop_unlabeled=True):
 
 
     # Assigning X and y 
-    X = df_dataset.drop(columns=['id', 'class']) # to include node Id uncomment drop class only
+    # X = df_dataset.drop(columns=['id', 'class']) # to include node Id uncomment drop class only
+    X = df_dataset.drop(columns=['class']) # to include node Id uncomment drop class only
     y = df_dataset['class']
 
-    return X, y
+    # Adding timestep column to df_edges
+    df_edge_time = df_edges.join(df_features[['id','time_step']].rename(columns={'id':'txId1'}).set_index('txId1'),on='txId1',how='left',rsuffix='1') \
+        .join(df_features[['id','time_step']].rename(columns={'id':'txId2'}).set_index('txId2'),on='txId2',how='left',rsuffix='2')
+    df_edge_time = df_edge_time[['txId1','txId2','time_step']]
+
+    return X, y, df_edge_time
 
 def split_train_test (X, y):
     """ 
@@ -70,19 +77,61 @@ def split_train_test (X, y):
 
     
 
-def adj_mat_per_ts (X_train, ts_start, ts_end):
+def adj_mat_per_ts (X_train, df_edges, ts_start, ts_end):
     """Retrun a list containitng the adjacency matrix for every timestep"""
 
-    df_edges = pd.read_csv (data_edges)
-    df_edges_labelled = df_edges[df_edges['TxId'].isin(X_train['id'])]
+
+    # labelled_idx = df_edges[df_edges['txId1'].isin(X_train['id'])].index
+    # df_edges_labelled = df_edges.loc[labelled_idx]
+    df_edges_labelled = df_edges[df_edges['txId1'].isin(X_train['id'])]
+
+ 
+    num_tx = X_train.shape[0]
+    total_txs = list(X_train['id'])
+
     adj_matrices = []
-    for timestep in range(ts_start , ts_end + 1):
-        num_tx = X_train[X_train['time_step'] == timestep].shape[0]
-        adj_mat_ts = pd.DataFrame(np.zeros((num_tx, num_tx)))
 
-        for i in range(num_tx):
-            adj_mat_ts.loc[adj_mat_ts.index[i], df_edges_labelled.iloc[i]['txId2']] = 1
+    for timestep in range(ts_start , ts_end+1):
+        X_train_ts = X_train[X_train['time_step'] == timestep]
+       
+        txs = list(X_train_ts['id']) # txs in this timestep
 
+        # df_edges_labelled_ts = df_edges_labelled[df_edges_labelled['time_step'] == timestep]
+        df_edges_labelled_ts = df_edges_labelled[df_edges_labelled['time_step'] == timestep]
+
+        print('df_edges_labelled_ts:  ', df_edges_labelled_ts.shape[0] )
+        print('X shape:  ', len(txs))
+       
+
+        
+        # adj_mat = pd.DataFrame(np.zeros((num_tx, num_tx)), index = total_txs, columns =total_txs)
+        
+        # for index, row in df_edges_labelled_ts.iterrows():
+        #     adj_mat.loc[ row['txId1'], row['txId2']] = 1
+        # adj_mat_ts = adj_mat.loc[txs, txs]
+
+
+        # using crosstab 
+     
+        adj_mat_ts = pd.crosstab(df_edges_labelled_ts.txId1, df_edges_labelled_ts.txId2)
+        adj_mat_ts = adj_mat_ts.reindex(index = txs, columns=txs, fill_value=0)
+        
+        # idx = adj_mat.columns.union(adj_mat.index)
+      
+
+        # adj_mat_ts = adj_mat_ts.loc[ adj_mat_ts.index.isin(txs), :]
+        
         adj_matrices.append(adj_mat_ts)
 
     return adj_matrices
+
+
+list1 = [5, 6, 4]
+list2 = [1, 3 , 8]
+
+df = pd.DataFrame(list(zip(list1, list2)), columns =['txId1', 'txId2'])
+
+adj_mat_ts = pd.crosstab(df.txId1, df.txId2)
+adj_mat_ts = adj_mat_ts.reindex(index = [5, 1, 6, 3, 4, 8], columns= [5, 1, 6, 3, 4, 8], fill_value=0)
+
+print (adj_mat_ts)
