@@ -24,5 +24,5 @@ def unsupervised_model (X_train, y_train, model):
     model.fit(X_train, y_train)
     return model
 
-def neural_network ():
+def mlp ():
     pass
