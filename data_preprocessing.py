@@ -49,6 +49,9 @@ def load_elliptic_dataset (drop_unlabeled=True):
         .join(df_features[['id','time_step']].rename(columns={'id':'txId2'}).set_index('txId2'),on='txId2',how='left',rsuffix='2')
     df_edge_time = df_edge_time[['txId1','txId2','time_step']]
 
+    if drop_unlabeled:
+        df_edge_time.loc[df_edges['txId1'].isin(df_dataset['id']) & df_edges['txId2'].isin(df_dataset['id'])]
+
     return X, y, df_edge_time
 
 def split_train_test (X, y):
@@ -126,12 +129,12 @@ def adj_mat_per_ts (X_train, df_edges, ts_start, ts_end):
     return adj_matrices
 
 
-list1 = [5, 6, 4]
-list2 = [1, 3 , 8]
+# list1 = [5, 6, 4]
+# list2 = [1, 3 , 8]
 
-df = pd.DataFrame(list(zip(list1, list2)), columns =['txId1', 'txId2'])
+# df = pd.DataFrame(list(zip(list1, list2)), columns =['txId1', 'txId2'])
 
-adj_mat_ts = pd.crosstab(df.txId1, df.txId2)
-adj_mat_ts = adj_mat_ts.reindex(index = [5, 1, 6, 3, 4, 8], columns= [5, 1, 6, 3, 4, 8], fill_value=0)
+# adj_mat_ts = pd.crosstab(df.txId1, df.txId2)
+# adj_mat_ts = adj_mat_ts.reindex(index = [5, 1, 6, 3, 4, 8], columns= [5, 1, 6, 3, 4, 8], fill_value=0)
 
-print (adj_mat_ts)
+# print (adj_mat_ts)
