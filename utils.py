@@ -16,6 +16,9 @@ def calc_performance_score (y_true, y_pred, metric='f1'):
 
 def evaluate_performance(y_true, y_pred, metric='f1'):
 
+    if not isinstance(y_pred,list):
+        return calc_performance_score(y_true.astype('int'), y_pred, metric)
+        
     model_scores = []
     for y_i in y_pred:
         score = calc_performance_score(y_true.astype('int'), y_i, metric)
