@@ -1,81 +1,55 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn import Embedding
+from torch.nn import Parameter
+from torch_geometric.data import Data
+from torch_geometric.loader import DataLoader
+from torch_geometric.nn import GCNConv
+from torch_geometric.utils.convert import to_networkx
+from torch_geometric.utils import to_undirected
 
-import numpy as np
-import time
-import sys
 
-class GraphConv(nn.Module):
-    def __init__(self, in_features, out_features, activation  = 'relu', skip = False, skip_in_features = None):
-        super(GraphConv, self).__init__()
-        self.W = torch.nn.Parameter(torch.DoubleTensor(in_features, out_features))
-        nn.init.xavier_uniform_(self.W)
+class MGCN(torch.nn.Module):
+    def __init__(self, num_node_features, hidden_channels, use_skip=False):
+        super(MGCN, self).__init__()
+        self.conv1 = GCNConv(num_node_features, hidden_channels[0])
+        self.conv2 = GCNConv(hidden_channels[0],hidden_channels[1])
+        self.linear1 = nn.Linear (94, 100) # We have 94 local features
+        self.linear2 = nn.Linear(110, 81) # 110 is 100 from the linear + 10 from the gcn
+        self.linear3 = nn.Linear (81, 2)
+        self.use_skip = use_skip
+        if self.use_skip:
+            self.weight = nn.init.xavier_normal_(Parameter(torch.Tensor(num_node_features, 2)))
+
+
+    def forward(self, data):
+        x_graph = data.x[0]
+        x_linear = data.x[1]
+        x = self.conv1(x_graph, data.edge_index)
+        x = x.relu()
+        x = F.dropout(x, p=0.5, training=self.training)
+        x = self.conv2(x, data.edge_index)
         
-        self.set_act = False
-        if activation == 'relu':
-            self.activation = nn.ReLU()
-            self.set_act = True
-        elif activation == 'softmax':
-            self.activation = nn.Softmax(dim = 1)
-            self.set_act = True
-        else:
-            self.set_act = False
-            raise ValueError("activations supported are 'relu' and 'softmax'")
+        # Linearly transformed local feature data
+        x_local = self.linear1 (x_linear)
+        
+        # Concatinating
+        x_concat = torch.cat ((x, x_local), 1)
+        
+        # MLP
+        x = x_concat.relu()
+        x = self.linear2 (x)
+        x = x.relu()
+        x = self.linear3 (x)
             
-        self.skip = skip
-        if self.skip:
-            if skip_in_features == None:
-                raise ValueError("pass input feature size of the skip connection")
-            self.W_skip = torch.nn.Parameter(torch.DoubleTensor(skip_in_features, out_features)) 
-            nn.init.xavier_uniform_(self.W)
-        
-    def forward(self, A, H_in, H_skip_in = None):
-        # A must be an n x n matrix as it is an adjacency matrix
-        # H is the input of the node embeddings, shape will n x in_features
-        self.A = A
-        self.H_in = H_in
-        A_ = torch.add(self.A, torch.eye(self.A.shape[0]).double())
-        D_ = torch.diag(A_.sum(1))
-        # since D_ is a diagonal matrix, 
-        # its root will be the roots of the diagonal elements on the principle diagonal
-        # since A is an adjacency matrix, we are only dealing with positive values 
-        # all roots will be real
-        D_root_inv = torch.inverse(torch.sqrt(D_))
-        A_norm = torch.mm(torch.mm(D_root_inv, A_), D_root_inv)
-        # shape of A_norm will be n x n
-        
-        H_out = torch.mm(torch.mm(A_norm, H_in), self.W)
-        # shape of H_out will be n x out_features
-        
-        if self.skip:
-            H_skip_out = torch.mm(H_skip_in, self.W_skip)
-            H_out = torch.add(H_out, H_skip_out)
-        
-        if self.set_act:
-            H_out = self.activation(H_out)
-            
-        return H_out
-
-
-class GCN_2layer(nn.Module):
-    def __init__(self, in_features, hidden_features, out_features, skip = False):
-        super(GCN_2layer, self).__init__()
-        self.skip = skip
-        
-        self.gcl1 = GraphConv(in_features, hidden_features)
-        
-        if self.skip:
-            self.gcl_skip = GraphConv(hidden_features, out_features, activation = 'softmax', skip = self.skip,
-                                  skip_in_features = in_features)
+        if self.use_skip:
+            x = F.softmax(x+torch.matmul(data.x, self.weight), dim=-1)
         else:
-            self.gcl2 = GraphConv(hidden_features, out_features, activation = 'softmax')
-        
-    def forward(self, A, X):
-        out = self.gcl1(A, X)
-        if self.skip:
-            out = self.gcl_skip(A, out, X)
-        else:
-            out = self.gcl2(A, out)
-            
-        return out
+#             x = F.softmax(x, dim=-1)
+            x = F.log_softmax(x, dim=1)
+        return x
+
+    def embed(self, data):
+        x = self.conv1(data.x[0], data.edge_index)
+        return x
