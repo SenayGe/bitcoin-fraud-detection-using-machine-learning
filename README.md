@@ -9,8 +9,8 @@
 - utils.py - helper functions
 
 ## Installation and setup
-Clone repository  <br />
-Download the Elliptic Bitcoin dataset from https://www.kaggle.com/ellipticco/elliptic-data-set and save the three .csv files under the same directory inside dataset/.
+- Clone repository  <br />
+- Download the Elliptic Bitcoin dataset from https://www.kaggle.com/ellipticco/elliptic-data-set and save the three .csv files under the same directory inside dataset/.
 ### Running the ml models
 To `run` the classical ml algos:
 ```
