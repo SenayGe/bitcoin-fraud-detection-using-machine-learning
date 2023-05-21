@@ -4,6 +4,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import os
 
+'''Helper functions'''
+
 def calc_performance_score (y_true, y_pred, metric='f1'):
     performance_scores = {'accuracy': accuracy_score(y_true, y_pred), 'f1': f1_score(y_true, y_pred, pos_label=1),
                    'f1_micro': f1_score(y_true, y_pred, average='micro'),

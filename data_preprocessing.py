@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 import numpy as np
 
+# Dataset
 data_features = os.path.join (os.getcwd(), 'dataset/elliptic_txs_features.csv')
 data_edges = os.path.join (os.getcwd(), 'dataset/elliptic_txs_edgelist.csv')
 data_classes = os.path.join (os.getcwd(), 'dataset/elliptic_txs_classes.csv')
@@ -35,7 +36,7 @@ def load_elliptic_dataset (drop_unlabeled=True):
     df_features.columns = ['id', 'time_step'] + \
         [f'trans_feat_{i}' for i in range(93)] + [f'agg_feat_{i}' for i in range(72)]
     
-    # Combining the dataframes
+    # Combining the dataframes and dropping unlabelled dataset
     df_dataset = merge_dataframes (df_features, df_classes, drop_unlabeled)
 
 
@@ -134,6 +135,14 @@ def adj_mat_per_ts (X_train, df_edges, ts_start, ts_end):
 
 # df = pd.DataFrame(list(zip(list1, list2)), columns =['txId1', 'txId2'])
 
+# print(df.head)
+# print(df.index[df['txId1'] == 6].tolist())
+
+
+# a = [1, 2 ,3 , 4 , 5]
+# indx = [2 ,3 , 4]
+
+# print (list(map(lambda i: a[i], indx)))
 # adj_mat_ts = pd.crosstab(df.txId1, df.txId2)
 # adj_mat_ts = adj_mat_ts.reindex(index = [5, 1, 6, 3, 4, 8], columns= [5, 1, 6, 3, 4, 8], fill_value=0)
 
