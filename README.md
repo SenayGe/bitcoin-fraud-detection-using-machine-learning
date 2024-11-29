@@ -4,6 +4,7 @@ This project is an experiment for money laundering detection in bitcoin transact
 
 ### System model (GCN-MLP)
 <img src="https://raw.githubusercontent.com/SenayGe/bitcoin-fraud-detection-using-machine-learning/main/figures/sys_model.png" >
+
 ## Available modules and scripts
 - models.py - defines implemented models
 - data_preprocessing - elliptic dataset preprocessing
