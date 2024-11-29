@@ -1,6 +1,6 @@
 # Bitcoin money laundering detection using ML
 
-This project is an experiment for money laundering detection in bitcoin transactions using classical supervised classification algorithms as well as a custom model that combines a graph convolutional network (GCN) with a multi-layer perceptron (MLP).
+This project is an experiment for money laundering detection in bitcoin transactions using classical supervised classification algorithms as well as a custom model that combines a graph convolutional network (GCN) with a multi-layer perceptron (MLP).It implements some of the methods in [this](https://dl.acm.org/doi/10.1145/3409073.3409080) paper with sligh modifications.
 
 ### System model (GCN-MLP)
 <img src="https://raw.githubusercontent.com/SenayGe/bitcoin-fraud-detection-using-machine-learning/main/figures/sys_model.png" >
